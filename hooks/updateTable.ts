@@ -1,0 +1,72 @@
+"use server";
+import { google } from "googleapis";
+import { qna } from "@/data/qna";
+
+export async function updateTable(
+  answers: string[],
+  lookbacks: number,
+  timeTaken: number
+) {
+  try {
+    const auth = await google.auth.getClient({
+      scopes: process.env.SCOPES as string,
+      keyFile: process.env.CREDENTIALS_PATH as string,
+    });
+
+    const sheets = google.sheets({ version: "v4", auth });
+
+    const getResult = await sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.SHEET_ID as string,
+      range: "AnswerKey!A:C",
+    });
+
+    if (getResult.status !== 200) {
+      throw new Error(`Failed to fetch answer keys: ${getResult.statusText}`);
+    }
+
+    if (!getResult.data.values) {
+      throw new Error("No answer key data found.");
+    }
+
+    const answerKeys = Array(qna.length).fill("-") as string[];
+
+    getResult.data.values.forEach((row) => {
+      const questionId = parseInt(row[0], 10);
+      const answer = row[1];
+      answerKeys[questionId - 1] = answer;
+    });
+
+    let score = 0;
+    answers.forEach((ans, index) => {
+      if (ans === answerKeys[index]) {
+        score += 1;
+      }
+    });
+
+    const updateResult = await sheets.spreadsheets.values.append({
+      spreadsheetId: process.env.SHEET_ID as string,
+      range: "Data",
+      valueInputOption: "USER_ENTERED",
+      requestBody: {
+        values: [
+          [
+            ...answers,
+            score.toString(),
+            lookbacks.toString(),
+            timeTaken.toString(),
+          ],
+        ],
+      },
+    });
+
+    if (updateResult.status !== 200) {
+      throw new Error(`Failed to append data: ${updateResult.statusText}`);
+    }
+
+    return { success: true, message: "Answers submitted successfully!" };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("Server action error:", message);
+    return { success: false, message };
+  }
+}

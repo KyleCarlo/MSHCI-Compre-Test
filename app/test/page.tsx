@@ -1,0 +1,108 @@
+"use client";
+import QBox from "@/components/QBox";
+import { qna } from "@/data/qna";
+import { useEffect, useRef, useState } from "react";
+import { FaRegQuestionCircle, FaCheck } from "react-icons/fa";
+import toast, { Toaster } from "react-hot-toast";
+import { updateTable } from "@/hooks/updateTable";
+import { useRouter } from "next/navigation";
+
+export default function Page() {
+  const lookbackRef = useRef<number>(0);
+  const lastIncrementTime = useRef<number>(0);
+  const [answers, setAnswers] = useState<string[]>(Array(qna.length).fill("-"));
+  const [countdown, setCountdown] = useState<number>(20 * 60); // 20 minutes in seconds
+  const router = useRouter();
+
+  const onBlur = () => {
+    const now = Date.now();
+    if (now - lastIncrementTime.current > 1000) {
+      lookbackRef.current += 1;
+    }
+    lastIncrementTime.current = now;
+  };
+
+  useEffect(() => {
+    window.addEventListener("blur", onBlur);
+
+    return () => {
+      window.removeEventListener("blur", onBlur);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (countdown <= 0) return;
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [countdown]);
+
+  const minutes = Math.floor(countdown / 60);
+  const seconds = countdown % 60;
+
+  return (
+    <>
+      <div className="flex flex-col justify-center items-center space-y-10 my-[20dvh]">
+        <div className="fixed top-0 right-0 p-4">
+          <p className="font-semibold">Questions</p>
+          <ol>
+            {qna.map((_, index) => (
+              <li key={index} className="pl-4 flex items-center">
+                {answers[index] === "-" ? (
+                  <FaRegQuestionCircle className="mr-2" />
+                ) : (
+                  <FaCheck className="mr-2 text-[#4CAF50]" />
+                )}
+                <p>Question {index + 1}</p>
+              </li>
+            ))}
+            <p className="font-semibold">Time Left: </p>
+            <p
+              className={`${countdown < 5 * 60 && "text-amber-600"} ${
+                countdown < 60 && "text-red-600"
+              } `}
+            >
+              {String(minutes).padStart(2, "0")} minutes{" "}
+              {String(seconds).padStart(2, "0")} seconds
+            </p>
+          </ol>
+        </div>
+        {qna.map((item, index) => (
+          <QBox
+            key={index}
+            no={index + 1}
+            question_id={item.id}
+            question={item.question}
+            choices={item.choices}
+            setAnswers={setAnswers}
+          />
+        ))}
+        <button
+          onClick={async () => {
+            toast.loading("Submitting your answers...");
+            const response = await updateTable(
+              answers,
+              lookbackRef.current,
+              20 * 60 - countdown
+            );
+            toast.dismiss();
+
+            if (!response.success) {
+              toast.error("Error submitting answers: " + response.message);
+              return;
+            }
+
+            router.push("/thank-you");
+          }}
+          className="bg-white shadow-sm px-4 py-2 rounded text-[#4CAF50] hover:bg-[#f0f0f0] font-semibold cursor-pointer"
+        >
+          Submit
+        </button>
+      </div>
+      <Toaster position="top-left" />
+    </>
+  );
+}
