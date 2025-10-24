@@ -10,7 +10,10 @@ export async function updateTable(
   try {
     const auth = await google.auth.getClient({
       scopes: process.env.SCOPES as string,
-      keyFile: process.env.CREDENTIALS_PATH as string,
+      credentials: {
+        client_email: process.env.GOOGLE_CLIENT_EMAIL,
+        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+      },
     });
 
     const sheets = google.sheets({ version: "v4", auth });
