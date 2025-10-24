@@ -21,6 +21,9 @@ export default function Home() {
                 questions.
               </li>
               <li>
+                Do your best to correctly answer as many questions as possible.
+              </li>
+              <li>
                 You are allowed to take a look back at the material presented
                 while answering the question.
               </li>
@@ -32,8 +35,8 @@ export default function Home() {
               </li>
               <li>Note that you will be video recorded during the test.</li>
               <li>
-                Press <strong>next</strong> to immediately proceed to the
-                questions.
+                Input your name below and press <strong>next</strong> to
+                immediately proceed to the questions.
               </li>
             </ul>
           </div>
