@@ -12,6 +12,7 @@ export default function Page() {
   const lastIncrementTime = useRef<number>(0);
   const [answers, setAnswers] = useState<string[]>(Array(qna.length).fill("-"));
   const [countdown, setCountdown] = useState<number>(20 * 60); // 20 minutes in seconds
+  const [isDisabled, setIsDisabled] = useState<boolean>(false);
   const warningShown = useRef<number>(0);
   const router = useRouter();
 
@@ -94,8 +95,10 @@ export default function Page() {
         ))}
         <button
           onClick={async () => {
+            setIsDisabled(true);
             if (answers.includes("-")) {
               toast.error("Please answer all questions before submitting.");
+              setIsDisabled(false);
               return;
             }
 
@@ -109,14 +112,16 @@ export default function Page() {
 
             if (!response.success) {
               toast.error("Error submitting answers: " + response.message);
+              setIsDisabled(false);
               return;
             }
 
             router.push("/thank-you");
           }}
-          className="bg-white shadow-sm px-4 py-2 rounded text-[#4CAF50] hover:bg-[#f0f0f0] font-semibold cursor-pointer"
+          className="bg-white shadow-sm px-4 py-2 rounded text-[#4CAF50] hover:bg-[#f0f0f0] font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isDisabled}
         >
-          Submit
+          {!isDisabled ? "Submit" : "Please wait..."}
         </button>
       </div>
       <Toaster position="top-left" />
