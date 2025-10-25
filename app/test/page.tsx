@@ -12,6 +12,7 @@ export default function Page() {
   const lastIncrementTime = useRef<number>(0);
   const [answers, setAnswers] = useState<string[]>(Array(qna.length).fill("-"));
   const [countdown, setCountdown] = useState<number>(20 * 60); // 20 minutes in seconds
+  const warningShown = useRef<number>(0);
   const router = useRouter();
 
   const onBlur = () => {
@@ -31,7 +32,18 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
-    if (countdown <= 0) return;
+    if (countdown <= 5 * 60 && warningShown.current < 1) {
+      toast("Only 5 minutes left!", { duration: 5000 });
+      warningShown.current = 1;
+    } else if (countdown <= 1 * 60 && warningShown.current < 2) {
+      toast("Only 1 minute left!", { duration: 5000 });
+      warningShown.current = 2;
+    }
+
+    if (countdown <= 0) {
+      router.push("/thank-you");
+      return;
+    }
 
     const timer = setInterval(() => {
       setCountdown((prev) => prev - 1);
@@ -46,7 +58,7 @@ export default function Page() {
   return (
     <>
       <div className="flex flex-col justify-center items-center space-y-10 my-[20dvh]">
-        <div className="fixed top-0 right-0 p-4">
+        <div className="fixed top-0 right-0 p-4 z-10">
           <p className="font-semibold">Questions</p>
           <ol>
             {qna.map((_, index) => (
@@ -82,6 +94,11 @@ export default function Page() {
         ))}
         <button
           onClick={async () => {
+            if (answers.includes("-")) {
+              toast.error("Please answer all questions before submitting.");
+              return;
+            }
+
             toast.loading("Submitting your answers...");
             const response = await updateTable(
               answers,
