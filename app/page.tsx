@@ -20,9 +20,7 @@ export default function Home() {
                 You will be given <strong>20 minutes</strong> to answer the
                 questions.
               </li>
-              <li>
-                Do your best to correctly answer as many questions as possible.
-              </li>
+              <li>Do your best to correctly answer all the questions.</li>
               <li>
                 You are allowed to take a look back at the material presented
                 while answering the question.
