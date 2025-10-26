@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { useNameContext } from "@/components/name-provider";
 
 export default function Home() {
-  const [name, setName] = useState("");
   const router = useRouter();
+  const nameContext = useNameContext();
 
   return (
     <div className="h-dvh flex justify-center items-center flex-col">
@@ -49,18 +49,20 @@ export default function Home() {
       </div>
       <input
         type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
+        value={nameContext.name}
+        onChange={(e) => {
+          nameContext?.setName(e.target.value);
+        }}
         className="bg-white border border-gray-300 rounded-md p-2 mt-4 w-[640px] max-w-[640px]"
         placeholder="Enter your name"
       />
       <button
         onClick={() => {
-          if (name === "") {
+          if (nameContext?.name === "") {
             toast.error("Please enter your name to proceed.");
             return;
           }
-          router.push(`/test?name=${encodeURIComponent(name)}`);
+          router.push(`/test`);
         }}
         className="cursor-pointer bg-white shadow-sm px-4 py-2 rounded text-[#4CAF50] mt-10 hover:bg-[#f0f0f0] font-semibold"
       >

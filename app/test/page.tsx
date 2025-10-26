@@ -5,7 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { FaRegQuestionCircle, FaCheck } from "react-icons/fa";
 import toast from "react-hot-toast";
 import { updateTable } from "@/hooks/updateTable";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useNameContext } from "@/components/name-provider";
 
 export default function Page() {
   const lookbackRef = useRef<number>(0);
@@ -15,7 +16,7 @@ export default function Page() {
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
   const warningShown = useRef<number>(0);
   const router = useRouter();
-  const name = useSearchParams().get("name");
+  const nameContext = useNameContext();
 
   const onBlur = () => {
     const now = Date.now();
@@ -55,10 +56,10 @@ export default function Page() {
   }, [countdown]);
 
   useEffect(() => {
-    if (!name) {
+    if (nameContext.name === "") {
       router.push("/");
     }
-  }, [name, router]);
+  }, [router, nameContext.name]);
 
   const minutes = Math.floor(countdown / 60);
   const seconds = countdown % 60;
@@ -110,7 +111,7 @@ export default function Page() {
 
           toast.loading("Submitting your answers...");
           const response = await updateTable(
-            name as string,
+            nameContext.name,
             answers,
             lookbackRef.current,
             20 * 60 - countdown
