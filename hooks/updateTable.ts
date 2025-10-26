@@ -3,6 +3,7 @@ import { google } from "googleapis";
 import { qna } from "@/data/qna";
 
 export async function updateTable(
+  name: string,
   answers: string[],
   lookbacks: number,
   timeTaken: number
@@ -53,6 +54,7 @@ export async function updateTable(
       requestBody: {
         values: [
           [
+            name,
             ...answers,
             score.toString(),
             lookbacks.toString(),

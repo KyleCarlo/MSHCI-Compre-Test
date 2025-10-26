@@ -1,6 +1,13 @@
-import Link from "next/link";
+"use client";
+
+import { useState } from "react";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const [name, setName] = useState("");
+  const router = useRouter();
+
   return (
     <div className="h-dvh flex justify-center items-center flex-col">
       <div className="border-t-2 border-t-[#4CAF50] shadow-lg rounded-xl relative overflow-hidden bg-white max-w-[640px]">
@@ -40,12 +47,25 @@ export default function Home() {
           </div>
         </div>
       </div>
-      <Link
-        href="/test"
-        className="bg-white shadow-sm px-4 py-2 rounded text-[#4CAF50] mt-10 hover:bg-[#f0f0f0] font-semibold"
+      <input
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        className="bg-white border border-gray-300 rounded-md p-2 mt-4 w-[640px] max-w-[640px]"
+        placeholder="Enter your name"
+      />
+      <button
+        onClick={() => {
+          if (name === "") {
+            toast.error("Please enter your name to proceed.");
+            return;
+          }
+          router.push(`/test?name=${encodeURIComponent(name)}`);
+        }}
+        className="cursor-pointer bg-white shadow-sm px-4 py-2 rounded text-[#4CAF50] mt-10 hover:bg-[#f0f0f0] font-semibold"
       >
         Next
-      </Link>
+      </button>
     </div>
   );
 }
