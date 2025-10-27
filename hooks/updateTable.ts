@@ -6,7 +6,8 @@ export async function updateTable(
   name: string,
   answers: string[],
   lookbacks: number,
-  timeTaken: number
+  timeTaken: number,
+  logs: string[][]
 ) {
   try {
     const auth = await google.auth.getClient({
@@ -66,6 +67,19 @@ export async function updateTable(
 
     if (updateResult.status !== 200) {
       throw new Error(`Failed to append data: ${updateResult.statusText}`);
+    }
+
+    const logResult = await sheets.spreadsheets.values.append({
+      spreadsheetId: process.env.SHEET_ID as string,
+      range: "Logs",
+      valueInputOption: "USER_ENTERED",
+      requestBody: {
+        values: logs,
+      },
+    });
+
+    if (logResult.status !== 200) {
+      throw new Error(`Failed to append logs: ${logResult.statusText}`);
     }
 
     return { success: true, message: "Answers submitted successfully!" };

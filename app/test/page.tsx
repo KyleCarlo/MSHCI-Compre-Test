@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { updateTable } from "@/hooks/updateTable";
 import { useRouter } from "next/navigation";
 import { useNameContext } from "@/components/name-provider";
+import moment from "moment-timezone";
 
 export default function Page() {
   const lookbackRef = useRef<number>(0);
@@ -15,17 +16,9 @@ export default function Page() {
   const [countdown, setCountdown] = useState<number>(20 * 60); // 20 minutes in seconds
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
   const warningShown = useRef<number>(0);
+  const logs = useRef<string[][]>([]);
   const router = useRouter();
   const nameContext = useNameContext();
-
-  const onBlur = () => {
-    const now = Date.now();
-    if (now - lastIncrementTime.current > 1000) {
-      lookbackRef.current += 1;
-    }
-    console.log(now, lookbackRef.current);
-    lastIncrementTime.current = now;
-  };
 
   const onBeforeUnload = (e: BeforeUnloadEvent) => {
     e.preventDefault();
@@ -34,6 +27,30 @@ export default function Page() {
   };
 
   useEffect(() => {
+    const onBlur = () => {
+      const minutes = Math.floor(countdown / 60);
+      const seconds = countdown % 60;
+      const timestamp = `${String(minutes).padStart(2, "0")}:${String(
+        seconds
+      ).padStart(2, "0")}`;
+      const now = moment.tz("Asia/Manila");
+      if (now.valueOf() - lastIncrementTime.current > 1500) {
+        lookbackRef.current += 1;
+      }
+      console.log(
+        now.format("YYYY-MM-DD hh:mm:ss A"),
+        timestamp,
+        lookbackRef.current
+      );
+      logs.current.push([
+        nameContext.name,
+        now.format("YYYY-MM-DD hh:mm:ss A"),
+        timestamp,
+        lookbackRef.current.toString(),
+      ]);
+      lastIncrementTime.current = now.valueOf();
+    };
+
     window.addEventListener("blur", onBlur);
     window.addEventListener("beforeunload", onBeforeUnload);
 
@@ -41,7 +58,7 @@ export default function Page() {
       window.removeEventListener("blur", onBlur);
       window.removeEventListener("beforeunload", onBeforeUnload);
     };
-  }, []);
+  }, [countdown, nameContext.name]);
 
   useEffect(() => {
     if (countdown <= 5 * 60 && warningShown.current < 1) {
@@ -58,7 +75,8 @@ export default function Page() {
         nameContext.name,
         answers,
         lookbackRef.current,
-        20 * 60 - countdown
+        20 * 60 - countdown,
+        logs.current
       )
         .then((response) => {
           toast.dismiss();
@@ -83,7 +101,7 @@ export default function Page() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [countdown]);
+  }, [countdown, answers, router, nameContext.name]);
 
   useEffect(() => {
     if (nameContext.name === "") {
@@ -144,7 +162,8 @@ export default function Page() {
             nameContext.name,
             answers,
             lookbackRef.current,
-            20 * 60 - countdown
+            20 * 60 - countdown,
+            logs.current
           );
           toast.dismiss();
 
