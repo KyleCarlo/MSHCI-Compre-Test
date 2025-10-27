@@ -12,7 +12,7 @@ export default function Page() {
   const lookbackRef = useRef<number>(0);
   const lastIncrementTime = useRef<number>(0);
   const [answers, setAnswers] = useState<string[]>(Array(qna.length).fill("-"));
-  const [countdown, setCountdown] = useState<number>(5); // 20 minutes in seconds
+  const [countdown, setCountdown] = useState<number>(20 * 60); // 20 minutes in seconds
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
   const warningShown = useRef<number>(0);
   const router = useRouter();
@@ -27,11 +27,19 @@ export default function Page() {
     lastIncrementTime.current = now;
   };
 
+  const onBeforeUnload = (e: BeforeUnloadEvent) => {
+    e.preventDefault();
+    e.returnValue = "";
+    toast.error("Please do not refresh or close the page during the test.");
+  };
+
   useEffect(() => {
     window.addEventListener("blur", onBlur);
+    window.addEventListener("beforeunload", onBeforeUnload);
 
     return () => {
       window.removeEventListener("blur", onBlur);
+      window.removeEventListener("beforeunload", onBeforeUnload);
     };
   }, []);
 
