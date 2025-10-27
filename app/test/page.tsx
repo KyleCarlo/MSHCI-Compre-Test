@@ -12,7 +12,7 @@ export default function Page() {
   const lookbackRef = useRef<number>(0);
   const lastIncrementTime = useRef<number>(0);
   const [answers, setAnswers] = useState<string[]>(Array(qna.length).fill("-"));
-  const [countdown, setCountdown] = useState<number>(20 * 60); // 20 minutes in seconds
+  const [countdown, setCountdown] = useState<number>(5); // 20 minutes in seconds
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
   const warningShown = useRef<number>(0);
   const router = useRouter();
@@ -23,6 +23,7 @@ export default function Page() {
     if (now - lastIncrementTime.current > 1000) {
       lookbackRef.current += 1;
     }
+    console.log(now, lookbackRef.current);
     lastIncrementTime.current = now;
   };
 
@@ -43,13 +44,34 @@ export default function Page() {
       warningShown.current = 2;
     }
 
-    if (countdown <= 0) {
-      router.push("/thank-you");
-      return;
+    if (countdown == 0) {
+      toast.loading("Submitting your answers...");
+      updateTable(
+        nameContext.name,
+        answers,
+        lookbackRef.current,
+        20 * 60 - countdown
+      )
+        .then((response) => {
+          toast.dismiss();
+
+          if (!response.success) {
+            toast.error("Error submitting answers: " + response.message);
+            setIsDisabled(false);
+            return;
+          }
+
+          router.push("/thank-you");
+        })
+        .catch((error) => {
+          toast.dismiss();
+          toast.error("Error submitting answers: " + error.message);
+          setIsDisabled(false);
+        });
     }
 
     const timer = setInterval(() => {
-      setCountdown((prev) => prev - 1);
+      setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
 
     return () => clearInterval(timer);
