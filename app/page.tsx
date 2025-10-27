@@ -33,10 +33,14 @@ export default function Home() {
                 while answering the question.
               </li>
               <li>
-                Note that we will record the number of lookbacks made. To
-                efficiently track, you are{" "}
+                We will record the number of lookbacks made. To efficiently
+                track, you are{" "}
                 <strong>NOT allowed to make a side-by-side</strong> view between
                 this site and the material.
+              </li>
+              <li>
+                <strong>DO NOT refresh or navigate away</strong> from the page
+                after you clicked next.
               </li>
               <li>Note that you will be video recorded during the test.</li>
               <li>
